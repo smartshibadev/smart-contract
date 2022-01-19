@@ -603,7 +603,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 
-contract PunkShiba is Context, IERC20, Ownable {
+contract SmartShiba is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
