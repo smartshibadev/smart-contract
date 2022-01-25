@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-// Smart Shiba [ SSHIB ] 2022
+
+
+pragma solidity ^0.8.3;
 
 
 
-
-pragma solidity =0.8.9;
 
 abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
@@ -16,6 +16,9 @@ abstract contract Context {
         return msg.data;
     }
 }
+
+
+
 
 interface IERC20 {
     function totalSupply() external view returns (uint256);
@@ -46,6 +49,8 @@ interface IERC20 {
         uint256 value
     );
 }
+
+
 
 library SafeMath {
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -111,6 +116,8 @@ library SafeMath {
     }
 }
 
+
+
 library Address {
     function isContract(address account) internal view returns (bool) {
         bytes32 codehash;
@@ -125,14 +132,14 @@ library Address {
     function sendValue(address payable recipient, uint256 amount) internal {
         require(
             address(this).balance >= amount,
-            "SSHIB: insufficient balance"
+            "Address: insufficient balance"
         );
 
         // solhint-disable-next-line avoid-low-level-calls, avoid-call-value
         (bool success, ) = recipient.call{value: amount}("");
         require(
             success,
-            "SSHIB: unable to send value, recipient may have reverted"
+            "Address: unable to send value, recipient may have reverted"
         );
     }
 
@@ -140,7 +147,7 @@ library Address {
         internal
         returns (bytes memory)
     {
-        return functionCall(target, data, "SSHIB: low-level call failed");
+        return functionCall(target, data, "Address: low-level call failed");
     }
 
     function functionCall(
@@ -161,7 +168,7 @@ library Address {
                 target,
                 data,
                 value,
-                "SSHIB: low-level call with value failed"
+                "Address: low-level call with value failed"
             );
     }
 
@@ -173,7 +180,7 @@ library Address {
     ) internal returns (bytes memory) {
         require(
             address(this).balance >= value,
-            "SSHIB: insufficient balance for call"
+            "Address: insufficient balance for call"
         );
         return _functionCallWithValue(target, data, value, errorMessage);
     }
@@ -184,7 +191,7 @@ library Address {
         uint256 weiValue,
         string memory errorMessage
     ) private returns (bytes memory) {
-        require(isContract(target), "SSHIB: call to non-contract");
+        require(isContract(target), "Address: call to non-contract");
 
         (bool success, bytes memory returndata) = target.call{value: weiValue}(
             data
@@ -203,6 +210,9 @@ library Address {
         }
     }
 }
+
+
+
 
 contract Ownable is Context {
     address private _owner;
@@ -225,7 +235,7 @@ contract Ownable is Context {
     }
 
     modifier onlyOwner() {
-        require(_owner == _msgSender(), "SSHIB: caller is not the owner");
+        require(_owner == _msgSender(), "Ownable: caller is not the owner");
         _;
     }
 
@@ -237,7 +247,7 @@ contract Ownable is Context {
     function transferOwnership(address newOwner) public virtual onlyOwner {
         require(
             newOwner != address(0),
-            "SSHIB: new owner is the zero address"
+            "Ownable: new owner is the zero address"
         );
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
@@ -251,6 +261,8 @@ contract Ownable is Context {
         return block.timestamp;
     }
 }
+
+
 
 
 interface IUniswapV2Factory {
@@ -282,6 +294,7 @@ interface IUniswapV2Factory {
 
     function setFeeToSetter(address) external;
 }
+
 
 
 
@@ -603,7 +616,9 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 
-contract SmartShiba is Context, IERC20, Ownable {
+
+
+contract SMARTShiba is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -616,10 +631,10 @@ contract SmartShiba is Context, IERC20, Ownable {
     address payable public developmentAddress; 
         
     address payable public liquidityAddress =
-        payable(0x000000000000000000000000000000000000dEaD); // Liquidity  Address 
+        payable(0x000000000000000000000000000000000000dEaD); 
         
     address public immutable deadAddress =
-        0x000000000000000000000000000000000000dEaD; // dead address
+        0x000000000000000000000000000000000000dEaD; 
         
     mapping(address => uint256) private _rOwned;
     mapping(address => uint256) private _tOwned;
@@ -631,16 +646,14 @@ contract SmartShiba is Context, IERC20, Ownable {
     address[] private _excluded;
     
     uint256 private constant MAX = ~uint256(0);
-    uint256 private constant _tTotal = 10000000000000000000 * 1e18;
+    uint256 private constant _tTotal = 888888888888 * 1e18;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
     string private constant _name = "Smart Shiba";
-    string private constant _symbol = "SSHIB";
+    string private constant _symbol = "sSHIB";
     uint8 private constant _decimals = 18;
 
-
-    // these values are pretty much arbitrary since they get overwritten for every txn, but the placeholders make it easier to work with current contract.
     uint256 private _taxFee;
     uint256 private _previousTaxFee = _taxFee;
 
@@ -655,13 +668,13 @@ contract SmartShiba is Context, IERC20, Ownable {
 
     uint256 public _buyTaxFee = 6;
     uint256 public _buyLiquidityFee = 3;
-    uint256 public _buyMarketingFee = 3;
+    uint256 public _buyMarketingFee = 3;  // 14%
     uint256 public _buyBuybackFee = 2;
 
-    uint256 public _sellTaxFee = 6;
-    uint256 public _sellLiquidityFee = 4;
+    uint256 public _sellTaxFee = 7;
+    uint256 public _sellLiquidityFee = 3;
     uint256 public _sellMarketingFee = 4;
-    uint256 public _sellBuybackFee = 2;
+    uint256 public _sellBuybackFee = 3;    // 17%
     
     uint256 public tradingActiveBlock = 0; // 0 means trading is not active
     mapping(address => bool) public boughtEarly; // mapping to track addresses that buy within the first 2 blocks pay a 3x tax for 24 hours to sell
@@ -679,7 +692,7 @@ contract SmartShiba is Context, IERC20, Ownable {
 
     mapping (address => bool) public automatedMarketMakerPairs;
 
-    uint256 private minimumTokensBeforeSwap = _tTotal * 1 / 500000; // 0.005%
+    uint256 private minimumTokensBeforeSwap = _tTotal * 3 / 10000; // 0.03%
 
     IUniswapV2Router02 public uniswapV2Router;
     address public uniswapV2Pair;
@@ -795,7 +808,7 @@ contract SmartShiba is Context, IERC20, Ownable {
             _msgSender(),
             _allowances[sender][_msgSender()].sub(
                 amount,
-                "SSHIB: transfer amount exceeds allowance"
+                "ERC20: transfer amount exceeds allowance"
             )
         );
         return true;
@@ -824,7 +837,7 @@ contract SmartShiba is Context, IERC20, Ownable {
             spender,
             _allowances[_msgSender()][spender].sub(
                 subtractedValue,
-                "SSHIB: decreased allowance below zero"
+                "ERC20: decreased allowance below zero"
             )
         );
         return true;
@@ -886,7 +899,7 @@ contract SmartShiba is Context, IERC20, Ownable {
         view
         returns (uint256)
     {
-        require(tAmount <= _tTotal, "SSHIB: Amount must be less than supply");
+        require(tAmount <= _tTotal, "Amount must be less than supply");
         if (!deductTransferFee) {
             (uint256 rAmount, , , , , ) = _getValues(tAmount);
             return rAmount;
@@ -903,15 +916,15 @@ contract SmartShiba is Context, IERC20, Ownable {
     {
         require(
             rAmount <= _rTotal,
-            "SSHIB: Amount must be less than total reflections"
+            "Amount must be less than total reflections"
         );
         uint256 currentRate = _getRate();
         return rAmount.div(currentRate);
     }
 
     function excludeFromReward(address account) public onlyOwner {
-        require(!_isExcluded[account], "SSHIB: Account is already excluded");
-        require(_excluded.length + 1 <= 10, "SSHIB: Cannot exclude more than 10 accounts.");
+        require(!_isExcluded[account], "Account is already excluded");
+        require(_excluded.length + 1 <= 20, "Cannot exclude more than 20 accounts.  Include a previously excluded address.");
         if (_rOwned[account] > 0) {
             _tOwned[account] = tokenFromReflection(_rOwned[account]);
         }
@@ -920,7 +933,7 @@ contract SmartShiba is Context, IERC20, Ownable {
     }
 
     function includeInReward(address account) public onlyOwner {
-        require(_isExcluded[account], "SSHIB: Account is not excluded");
+        require(_isExcluded[account], "Account is not excluded");
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (_excluded[i] == account) {
                 _excluded[i] = _excluded[_excluded.length - 1];
@@ -937,8 +950,8 @@ contract SmartShiba is Context, IERC20, Ownable {
         address spender,
         uint256 amount
     ) private {
-        require(owner != address(0), "SSHIB: approve from the zero address");
-        require(spender != address(0), "SSHIB: approve to the zero address");
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
@@ -949,9 +962,9 @@ contract SmartShiba is Context, IERC20, Ownable {
         address to,
         uint256 amount
     ) private {
-        require(from != address(0), "SSHIB: transfer from the zero address");
-        require(to != address(0), "SSHIB: transfer to the zero address");
-        require(amount > 0, "SSHIB: Transfer amount must be greater than zero");
+        require(from != address(0), "ERC20: transfer from the zero address");
+        require(to != address(0), "ERC20: transfer to the zero address");
+        require(amount > 0, "Transfer amount must be greater than zero");
         
         if(!tradingActive){
             require(_isExcludedFromFee[from] || _isExcludedFromFee[to], "Trading is not active yet.");
@@ -963,7 +976,7 @@ contract SmartShiba is Context, IERC20, Ownable {
         
         // only use to prevent sniper buys in the first blocks.
         if (gasLimitActive && automatedMarketMakerPairs[from]) {
-            require(tx.gasprice <= gasPriceLimit, "SSHIB: Gas price exceeds limit.");
+            require(tx.gasprice <= gasPriceLimit, "Gas price exceeds limit.");
             if(!inSwapAndLiquify && !_isExcludedFromFee[from] && !_isExcludedFromFee[to]) {
                 require(gasleft() <= gasMaxLimit);
             }
@@ -1006,7 +1019,7 @@ contract SmartShiba is Context, IERC20, Ownable {
                 _taxFee = _sellTaxFee;
                 _liquidityFee = _sellLiquidityFee + _sellMarketingFee + _sellBuybackFee;
                                                  
-                if(boughtEarly[from]){               // 2x tax if bought in the same block as trading active for 24 hours
+                if(boughtEarly[from]){               // 2x tax if bought in the same block as trading active for 48 hours
                     _taxFee = _taxFee * 2;
                     _liquidityFee = _liquidityFee * 2;
                 }
@@ -1069,7 +1082,7 @@ contract SmartShiba is Context, IERC20, Ownable {
         _approve(address(this), address(uniswapV2Router), tokenAmount);
         uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(
             tokenAmount,
-            0, // accept any amount of BNB
+            0, // accept any amount of ETH
             path,
             address(this),
             block.timestamp
@@ -1351,7 +1364,7 @@ contract SmartShiba is Context, IERC20, Ownable {
         _buyLiquidityFee = buyLiquidityFee;
         _buyMarketingFee = buyMarketingFee;
         _buyBuybackFee = buyBuybackFee;
-        require(_buyTaxFee + _buyLiquidityFee + _buyMarketingFee + _buyBuybackFee <= 28, "SSHIB: Must keep taxes below 28%");
+        require(_buyTaxFee + _buyLiquidityFee + _buyMarketingFee + _buyBuybackFee <= 35, "Must keep taxes below 35%");
     }
 
     function setSellFee(uint256 sellTaxFee, uint256 sellLiquidityFee, uint256 sellMarketingFee, uint256 sellBuybackFee)
@@ -1362,7 +1375,7 @@ contract SmartShiba is Context, IERC20, Ownable {
         _sellLiquidityFee = sellLiquidityFee;
         _sellMarketingFee = sellMarketingFee;
         _sellBuybackFee = sellBuybackFee;
-        require(_sellTaxFee + _sellLiquidityFee + _sellMarketingFee + _sellBuybackFee <= 32, "SSHIB: Must keep taxes below 32%");
+        require(_sellTaxFee + _sellLiquidityFee + _sellMarketingFee + _sellBuybackFee <= 35, "Must keep taxes below 25%");
     }
 
     function setMarketingAddress(address _marketingAddress) external onlyOwner {
@@ -1435,7 +1448,7 @@ contract SmartShiba is Context, IERC20, Ownable {
         onlyOwner
         returns (bool _sent)
     {
-        require(_token != address(this), "SSHIB: Can't withdraw native tokens");
+        require(_token != address(this), "Can't withdraw native tokens");
         uint256 _contractBalance = IERC20(_token).balanceOf(address(this));
         _sent = IERC20(_token).transfer(_to, _contractBalance);
     }
